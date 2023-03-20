@@ -8,11 +8,13 @@ namespace FileForge.Setup
     {
         private readonly Dictionary<string, PathMap> pathDictionary = new();
         private readonly LinkedList<TemplateConfig> templateConfigs = new();
+        private readonly string templateDirectory;
+        private readonly TemplateConfig templateConfig;
 
         public PathMappings(string templateDirectory, TemplateConfig templateConfig)
         {
-            AddDefaultMap(templateDirectory, false);
-            MapPaths(templateDirectory, templateConfig);
+            this.templateDirectory = Path.GetFullPath(templateDirectory);
+            this.templateConfig = templateConfig;
         }
 
         public IEnumerable<PathMap> Paths => pathDictionary.Select(e => e.Value);
@@ -24,8 +26,15 @@ namespace FileForge.Setup
             return pathDictionary.GetValueOrDefault(path);
         }
 
+        public void Map()
+        {
+            MapPaths(templateDirectory, templateConfig);
+        }
+
         private void MapPaths(string currentDirectory, TemplateConfig? templateConfig = null)
         {
+            AddDefaultMap(currentDirectory, false);
+
             templateConfig ??= GetTemplateConfig(currentDirectory);
             if (templateConfig is not null)
             {
@@ -34,28 +43,17 @@ namespace FileForge.Setup
                 MapByTemplateConfig(currentDirectory, templateConfig);
             }
 
-            var childFiles = Directory
-                .EnumerateFiles(currentDirectory)
-                .Where(file => !pathDictionary.ContainsKey(file));
+            var files = Directory
+                .EnumerateFiles(currentDirectory);
 
-            var unmappedFolders = Directory
-                .EnumerateDirectories(currentDirectory)
-                .Where(folder => !pathDictionary.ContainsKey(folder));
-
-            var mappedFolders = Directory
-                .EnumerateDirectories(currentDirectory)
-                .Where(folder => pathDictionary.ContainsKey(folder) && pathDictionary[folder].Action != PathActions.Ignore);
-
-            foreach (var file in childFiles)
+            foreach (var file in files)
                 AddDefaultMap(file, true);
 
-            foreach (var folder in unmappedFolders)
-            {
-                AddDefaultMap(folder, false);
-                MapPaths(folder);
-            }
+            var folders = Directory
+                .EnumerateDirectories(currentDirectory)
+                .Where(folder => !pathDictionary.ContainsKey(folder) || pathDictionary[folder].Action != PathActions.Ignore);
 
-            foreach (var folder in mappedFolders)
+            foreach (var folder in folders)
                 MapPaths(folder);
         }
 
@@ -68,13 +66,13 @@ namespace FileForge.Setup
 
                 var files = Directory
                     .EnumerateFiles(currentDirectory, "*", SearchOption.AllDirectories)
-                    .Where(file => pathConfig.Regex.IsMatch(file));
+                    .Where(file => pathConfig.GetRegex(currentDirectory).IsMatch(file));
 
                 MapPaths(pathConfig, files, true);
 
                 var folders = Directory
                     .EnumerateDirectories(currentDirectory, "*", SearchOption.AllDirectories)
-                    .Where(folder => pathConfig.Regex.IsMatch(folder));
+                    .Where(folder => pathConfig.GetRegex(currentDirectory).IsMatch(folder));
 
                 MapPaths(pathConfig, folders, false);
             }
@@ -84,32 +82,42 @@ namespace FileForge.Setup
         {
             foreach (var directory in directories)
             {
+                var path = Path.GetFullPath(directory);
+
                 var config = new PathMap
                 {
-                    Path = directory,
+                    Path = path,
                     Action = pathConfig.Action ?? PathActions.Default,
                     Condition = pathConfig.Condition,
-                    FileExists = pathConfig.FileExists ?? FileExistsActions.Default,
-                    FolderExists = pathConfig.FolderExists ?? FolderExistsActions.Default,
                     IsFile = isFile
                 };
 
-                if (!pathDictionary.TryAdd(directory, config))
+                if (config.Action != PathActions.Ignore)
+                {
+                    config.FileExists = pathConfig.FileExists ?? FileExistsActions.Default;
+                    config.FolderExists = pathConfig.FolderExists ?? FolderExistsActions.Default;
+                }
+
+                if (!pathDictionary.TryAdd(path, config))
                     throw new DuplicatePathException(directory);
             }
         }
 
         private void AddDefaultMap(string directory, bool isFile)
         {
+            string path = Path.GetFullPath(directory);
+            if (pathDictionary.ContainsKey(path))
+                return;
+
             var config = new PathMap
             {
-                Path = directory,
+                Path = path,
                 Action = PathActions.Default,
                 FileExists = FileExistsActions.Default,
                 FolderExists = FolderExistsActions.Default,
                 IsFile = isFile
             };
-            pathDictionary.Add(config.Path, config);
+            pathDictionary.Add(path, config);
         }
 
         private void AddTemplateConfig(TemplateConfig templateConfig)
@@ -119,19 +127,22 @@ namespace FileForge.Setup
 
         private void MapTemplateConfig(string directory)
         {
+            string path = Path.GetFullPath(Path.Combine(directory, TemplateConfig.FileName));
+            if (pathDictionary.ContainsKey(path))
+                return;
+
             var config = new PathMap
             {
-                Path = Path.Combine(directory, TemplateConfig.FileName),
+                Path = path,
                 Action = PathActions.Ignore,
-                FileExists = FileExistsActions.Default,
                 IsFile = true
             };
-            pathDictionary.Add(config.Path, config);
+            pathDictionary.Add(path, config);
         }
 
         private TemplateConfig? GetTemplateConfig(string directory)
         {
-            var filePath = Path.Combine(directory, TemplateConfig.FileName);
+            var filePath = Path.GetFullPath(Path.Combine(directory, TemplateConfig.FileName));
             if (pathDictionary.ContainsKey(filePath))
                 return null;
 
@@ -143,8 +154,8 @@ namespace FileForge.Setup
             public string Path { get; set; } = null!;
             public bool IsFile { get; set; }
             public string Action { get; set; } = null!;
-            public string FileExists { get; set; } = null!;
-            public string FolderExists { get; set; } = null!;
+            public string? FileExists { get; set; } = null!;
+            public string? FolderExists { get; set; } = null!;
             public string? Condition { get; set; }
         }
     }

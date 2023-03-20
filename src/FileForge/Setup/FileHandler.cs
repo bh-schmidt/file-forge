@@ -25,7 +25,7 @@ namespace FileForge.Setup
 
         public void Create()
         {
-            if (pathMapping is null || !pathMapping.IsFile)
+            if (pathMapping is null || !pathMapping.IsFile || pathMapping.Action == PathActions.Ignore)
                 return;
 
             string content = GetContent(pathMapping, variableHandler);

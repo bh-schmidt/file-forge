@@ -46,40 +46,38 @@ namespace FileForge
         public class PathConfig
         {
             private static readonly char[] illegalCharacters = new[] { '@', '%', '&', ':', '"', '\'', '<', '>', '|', '~', '`', '#', '^', '+', '=', '{', '}', '[', ']', ';', '!', };
-            private string pattern = null!;
+            public string Pattern { get; set; } = null!;
             public string Action { get; set; } = PathActions.Default;
-            public string FileExists { get; set; } = FileExistsActions.Default;
-            public string FolderExists { get; set; } = FolderExistsActions.Default;
+            public string? FileExists { get; set; }
+            public string? FolderExists { get; set; }
             public string? Condition { get; set; }
 
-            public Regex Regex { get; private set; } = null!;
-            public string Pattern
+            public Regex GetRegex(string templatePath)
             {
-                get
-                {
-                    return pattern;
-                }
-                set
-                {
-                    if (string.IsNullOrEmpty(value))
-                        throw new Exception(); //to do
+                if (string.IsNullOrEmpty(Pattern))
+                    throw new Exception(); //to do
 
-                    if (value.Any(c => illegalCharacters.Contains(c)))
-                        throw new Exception();//to do
+                if (Pattern.Any(c => illegalCharacters.Contains(c)))
+                    throw new Exception();//to do
 
-                    var compiledPattern = new StringBuilder(Directory.GetCurrentDirectory())
-                        .Append(Path.DirectorySeparatorChar)
-                        .Append(value)
-                        .Replace(@"\", @"[\]")
-                        .Replace("/", @"[\/]")
-                        .Replace("*", @"[^.\/]*")
-                        .Replace("?", @".{1}")
-                        .Replace("$", @"[$]")
-                        .ToString();
+                // change to template directory
+                var compiledPattern = new StringBuilder("^")
+                    .Append(templatePath)
+                    .Append(Path.DirectorySeparatorChar)
+                    .Append(Pattern)
+                    .Replace(@"**/", @"++")
+                    .Replace(@"**\", @"++")
+                    .Replace(@".", @"[.]")
+                    .Replace(@"\", @"/")
+                    .Replace(@"/", @"([\\]|[\/])")
+                    .Replace(@"*", @"[^\\\/]*")
+                    .Replace(@"++", @".*")
+                    .Replace(@"?", @".{1}")
+                    .Replace(@"$", @"[$]")
+                    .Append('$')
+                    .ToString();
 
-                    pattern = value;
-                    Regex = new Regex(compiledPattern);
-                }
+                return new Regex(compiledPattern);
             }
         }
     }

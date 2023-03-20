@@ -1,6 +1,4 @@
 ﻿using FileForge.Constants;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace FileForge.Setup
 {
@@ -26,7 +24,7 @@ namespace FileForge.Setup
         public void Create()
         {
             var rootFolder = pathMappings.Paths
-                .OrderByDescending(e => e.Path.Length)
+                .OrderBy(e => e.Path.Length)
                 .FirstOrDefault();
 
             if (rootFolder is null)

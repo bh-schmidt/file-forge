@@ -29,16 +29,16 @@ namespace FileForge.Commands
             if (string.IsNullOrEmpty(templateDirectory))
                 throw new InvalidTemplateDirectoryException(templateDirectory);
 
-            templateDirectory = Path.GetDirectoryName(templateDirectory)!;
-
             var filePath = templateDirectory.EndsWith(TemplateConfig.FileName) ?
                 templateDirectory :
                 Path.Combine(templateDirectory, TemplateConfig.FileName);
 
+            filePath = Path.GetFullPath(filePath);
+
             if (!File.Exists(filePath))
                 throw new TemplateNotFoundException(templateDirectory);
 
-            var templateConfig = TemplateConfig.GetTemplateConfig(Path.Combine(templateDirectory, TemplateConfig.FileName));
+            var templateConfig = TemplateConfig.ReadTemplateConfig(filePath);
             if (templateConfig is null)
                 throw new InvalidTemplateFileException();
 
@@ -47,8 +47,13 @@ namespace FileForge.Commands
                 Path.GetFullPath(Path.Combine(currentDirectory, targetDirectory));
 
             var pathMappings = new PathMappings(templateDirectory, templateConfig);
+            pathMappings.Map();
+
             var variableMappings = new VariableMappings(pathMappings.TemplateConfigs);
+            variableMappings.Map();
+
             var variableHandler = new VariableHandler(variableMappings);
+            variableHandler.Ask();
 
             var folderHandler = new FolderHandler(templateDirectory, targetFolder, variableHandler, pathMappings);
             folderHandler.Create();

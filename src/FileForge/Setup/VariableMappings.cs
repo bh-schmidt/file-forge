@@ -4,9 +4,15 @@ namespace FileForge.Setup
 {
     public class VariableMappings
     {
+        private readonly IEnumerable<TemplateConfig> templates;
         private Dictionary<string, Variable> variables = new();
 
         public VariableMappings(IEnumerable<TemplateConfig> templates)
+        {
+            this.templates = templates;
+        }
+
+        public void Map()
         {
             foreach (var template in templates)
                 Add(template.Variables);

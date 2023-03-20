@@ -11,11 +11,22 @@ namespace FileForge.Setup
         private readonly Dictionary<string, IField> fields = new Dictionary<string, IField>();
         private readonly Dictionary<string, object?> variables = new Dictionary<string, object?>();
         private readonly Form form = new Form();
+        private readonly VariableMappings variableMappings;
 
         public object? Get(string name) => variables.GetValueOrDefault(name);
 
         public VariableHandler(VariableMappings variableMappings)
         {
+            this.variableMappings = variableMappings;
+        }
+
+        public Dictionary<string, object?> Variables => variables;
+
+        public void Ask()
+        {
+            if (!variableMappings.Variables.Any())
+                return;
+
             foreach (var variable in variableMappings.Variables)
             {
                 var formItem = CreateFormItem(variable);
@@ -44,8 +55,6 @@ namespace FileForge.Setup
             form.Run();
         }
 
-        public Dictionary<string, object?> Variables => variables;
-
         private FormItem CreateFormItem(VariableMappings.Variable variable)
         {
             var options = new FormItemOptions();
@@ -64,7 +73,7 @@ namespace FileForge.Setup
                     .Select(variableName => fields.GetValueOrDefault(variableName)!)
                     .ToArray();
 
-                options.DependsOn = new DependsOnFields(dependencies);
+                options.Dependencies = new FormItemDependencies(dependencies);
             }
 
             return form.Add(options);
