@@ -49,7 +49,7 @@ namespace FileForge.Commands
             var pathMappings = new PathMappings(templateDirectory, templateConfig);
             pathMappings.Map();
 
-            var variableMappings = new VariableMappings(pathMappings.TemplateConfigs);
+            var variableMappings = new VariableMappings(pathMappings.RootFolder);
             variableMappings.Map();
 
             var variableHandler = new VariableHandler(variableMappings);

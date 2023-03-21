@@ -8,8 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImprovedConsole" Version="0.0.4" />
+    <PackageReference Include="ImprovedConsole" Version="0.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Scriban" Version="5.7.0" />
   </ItemGroup>
 
 </Project>

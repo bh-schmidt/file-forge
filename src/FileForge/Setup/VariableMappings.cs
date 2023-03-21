@@ -1,36 +1,37 @@
 ﻿using FileForge.Constants;
+using FileForge.Maps;
 
 namespace FileForge.Setup
 {
     public class VariableMappings
     {
-        private readonly IEnumerable<TemplateConfig> templates;
-        private Dictionary<string, Variable> variables = new();
+        private FolderMap rootFolder;
 
-        public VariableMappings(IEnumerable<TemplateConfig> templates)
+        public VariableMappings(FolderMap rootFolder)
         {
-            this.templates = templates;
+            this.rootFolder = rootFolder;
         }
 
         public void Map()
         {
-            foreach (var template in templates)
-                Add(template.Variables);
+            Map(rootFolder);
         }
 
-        public IEnumerable<Variable> Variables => variables.Select(e => e.Value);
-
-        public void Add(IEnumerable<TemplateConfig.VariableConfig> variables)
+        public void Map(FolderMap folderMap)
         {
-            foreach (var variable in variables)
-                Add(variable);
+            if (folderMap.TemplateConfig is not null)
+                foreach (var variable in folderMap.TemplateConfig.Variables)
+                    Add(folderMap, variable);
+
+            foreach (var (_, folder) in folderMap.Folders)
+                Map(folder);
         }
 
-        public void Add(TemplateConfig.VariableConfig variable)
+        public void Add(FolderMap folderMap, TemplateConfig.VariableConfig variable)
         {
-            Validate(variable);
+            Validate(folderMap, variable);
 
-            variables.Add(variable.Name, new Variable
+            folderMap.Variables.Add(variable.Name, new VariableMap
             {
                 Name = variable.Name,
                 Description = variable.Description,
@@ -42,54 +43,43 @@ namespace FileForge.Setup
             });
         }
 
-        private void Validate(TemplateConfig.VariableConfig variable)
+        private void Validate(FolderMap folder, TemplateConfig.VariableConfig variable)
         {
             if (string.IsNullOrWhiteSpace(variable.Name))
-                return;
+                return; // to do
 
-            if (variables.ContainsKey(variable.Name))
-                return;
+            if (folder.Variables.ContainsKey(variable.Name))
+                return; // to do
 
             if (string.IsNullOrWhiteSpace(variable.Description))
-                return;
+                return; // to do
 
             if (!VariableTypes.IsValid(variable.Type))
-                return;
+                return; // to do
 
             if (variable.Type is VariableTypes.TextOption or VariableTypes.SingleSelect or VariableTypes.MultiSelect)
             {
                 if (variable.Options is null || !variable.Options.Any())
-                    return;
+                    return; // to do
 
                 if (variable.Options.Any(option => option is null || !option.Any()))
-                    return;
+                    return; // to do
             }
 
             if (variable.Dependencies is not null)
             {
                 if (!variable.Dependencies.Any())
-                    return;
+                    return; // to do
 
                 if (variable.Dependencies.Any(dependency => dependency is null || !dependency.Any()))
-                    return;
+                    return; // to do
 
                 var invalidDependencies = variable.Dependencies
-                    .Where(dependency => !variables.ContainsKey(dependency));
+                    .Where(dependency => !folder.VariableExists(dependency));
 
                 if (invalidDependencies.Any())
-                    return;
+                    return; // to do
             }
-        }
-
-        public class Variable
-        {
-            public string Name { get; set; } = null!;
-            public string Description { get; set; } = null!;
-            public string Type { get; set; } = null!;
-            public string[]? Dependencies { get; set; }
-            public string? Condition { get; set; }
-            public string? Required { get; set; }
-            public string[]? Options { get; set; }
         }
     }
 }
