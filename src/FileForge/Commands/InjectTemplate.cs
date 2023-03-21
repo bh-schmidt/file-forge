@@ -52,7 +52,7 @@ namespace FileForge.Commands
             var variableMappings = new VariableMappings(pathMappings.RootFolder);
             variableMappings.Map();
 
-            var variableHandler = new VariableHandler(variableMappings);
+            var variableHandler = new VariableHandler(pathMappings.RootFolder);
             variableHandler.Ask();
 
             var folderHandler = new FolderHandler(templateDirectory, targetFolder, variableHandler, pathMappings);

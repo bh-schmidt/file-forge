@@ -10,18 +10,13 @@ namespace FileForge.Setup
     public class VariableHandler
     {
         private readonly Dictionary<string, IField> fields = new Dictionary<string, IField>();
-        private readonly Dictionary<string, object?> variables = new Dictionary<string, object?>();
-        private readonly Form form = new Form();
+        private readonly Form form = new();
         private readonly FolderMap rootFolder;
-
-        public object? Get(string name) => variables.GetValueOrDefault(name);
 
         public VariableHandler(FolderMap rootFolder)
         {
             this.rootFolder = rootFolder;
         }
-
-        public Dictionary<string, object?> Variables => variables;
 
         public void Ask()
         {
@@ -41,6 +36,9 @@ namespace FileForge.Setup
 
         private void AddFields(VariableMap variable)
         {
+            if (fields.ContainsKey(variable.Name))
+                return; // to do
+
             var formItem = CreateFormItem(variable);
 
             switch (variable.Type)
@@ -94,12 +92,11 @@ namespace FileForge.Setup
                 .TextField(variable.Description)
                 .OnConfirm(value =>
                 {
-                    variables.Remove(variable.Name);
-                    variables.Add(variable.Name, value);
+                    variable.Result = value;
                 })
                 .OnReset(() =>
                 {
-                    variables.Remove(variable.Name);
+                    variable.Result = null;
                 });
         }
 
@@ -109,12 +106,11 @@ namespace FileForge.Setup
                 .MultiSelect(variable.Description, () => variable.Options!)
                 .OnConfirm(options =>
                 {
-                    variables.Remove(variable.Name);
-                    variables.Add(variable.Name, options.Select(e => e.Value));
+                    variable.Result = options.Select(e => e.Value);
                 })
                 .OnReset(() =>
                 {
-                    variables.Remove(variable.Name);
+                    variable.Result = null;
                 });
         }
 
@@ -124,12 +120,11 @@ namespace FileForge.Setup
                 .SingleSelect(variable.Description, () => variable.Options!)
                 .OnConfirm(option =>
                 {
-                    variables.Remove(variable.Name);
-                    variables.Add(variable.Name, option?.Value);
+                    variable.Result = option?.Value;
                 })
                 .OnReset(() =>
                 {
-                    variables.Remove(variable.Name);
+                    variable.Result = null;
                 });
         }
 
@@ -139,12 +134,11 @@ namespace FileForge.Setup
                 .OptionSelector(variable.Description, () => variable.Options!)
                 .OnConfirm(value =>
                 {
-                    variables.Remove(variable.Name);
-                    variables.Add(variable.Name, value);
+                    variable.Result = value;
                 })
                 .OnReset(() =>
                 {
-                    variables.Remove(variable.Name);
+                    variable.Result = null;
                 });
         }
     }

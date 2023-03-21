@@ -16,10 +16,18 @@
 
         public bool VariableExists(string name)
         {
+            if (Variables.ContainsKey(name))
+                return true;
+
             if (Parent is null)
                 return false;
 
-            return Variables.ContainsKey(name) || Parent.VariableExists(name);
+            return Parent.VariableExists(name);
+        }
+
+        public object? GetVariable(string name)
+        {
+            return Variables.GetValueOrDefault(name) ?? Parent?.GetVariable(name);
         }
     }
 }

@@ -9,5 +9,7 @@
         public string? Condition { get; set; }
         public string? Required { get; set; }
         public string[]? Options { get; set; }
+
+        public object? Result { get; set; }
     }
 }

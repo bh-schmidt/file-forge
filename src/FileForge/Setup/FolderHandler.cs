@@ -1,4 +1,5 @@
 ﻿using FileForge.Constants;
+using FileForge.Maps;
 
 namespace FileForge.Setup
 {
@@ -6,34 +7,24 @@ namespace FileForge.Setup
     {
         private readonly string templateDirectory;
         private readonly string targetDirectory;
-        private readonly VariableHandler variableHandler;
-        private readonly PathMappings pathMappings;
+        private readonly FolderMap rootFolder;
 
         public FolderHandler(
             string templateDirectory,
             string targetDirectory,
-            VariableHandler variableHandler,
-            PathMappings pathMappings)
+            FolderMap rootFolder)
         {
             this.templateDirectory = templateDirectory;
             this.targetDirectory = targetDirectory;
-            this.variableHandler = variableHandler;
-            this.pathMappings = pathMappings;
+            this.rootFolder = rootFolder;
         }
 
         public void Create()
         {
-            var rootFolder = pathMappings.Paths
-                .OrderBy(e => e.Path.Length)
-                .FirstOrDefault();
-
-            if (rootFolder is null)
-                return;
-
             HandleFolder(rootFolder);
         }
 
-        private void HandleFolder(PathMappings.PathMap? folder)
+        private void HandleFolder(FolderMap? folder)
         {
             if (folder is null || folder.Action == PathActions.Ignore)
                 return;
@@ -45,7 +36,7 @@ namespace FileForge.Setup
             var fileInfos = directoryInfo.GetFiles();
             foreach (var fileInfo in fileInfos)
             {
-                var file = pathMappings.Get(fileInfo.FullName);
+                var file = folder.Files.GetValueOrDefault(fileInfo.FullName);
                 var fileHandler = new FileHandler(templateDirectory, targetDirectory, variableHandler, file);
                 fileHandler.Create();
             }
@@ -53,16 +44,16 @@ namespace FileForge.Setup
             var directories = directoryInfo.GetDirectories();
             foreach (var directory in directories)
             {
-                var internalFolder = pathMappings.Get(directory.FullName);
+                var internalFolder = folder.Folders.GetValueOrDefault(directory.FullName);
                 HandleFolder(internalFolder);
             }
         }
 
-        private void EnsureFolder(PathMappings.PathMap folder, DirectoryInfo directoryInfo)
+        private void EnsureFolder(FolderMap folder, DirectoryInfo directoryInfo)
         {
             var relativePath = Path.GetRelativePath(templateDirectory, directoryInfo.FullName);
             if (folder.Action == PathActions.Inject && folder.Action.Contains('$'))
-                relativePath = PathVariableInjector.InjectVariables(relativePath, variableHandler);
+                relativePath = PathVariableInjector.InjectVariables(relativePath, folder);
 
             var absolutePath = Path.GetFullPath(Path.Combine(targetDirectory, relativePath));
 

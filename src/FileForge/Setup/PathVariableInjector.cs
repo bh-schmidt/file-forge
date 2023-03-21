@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using FileForge.Maps;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FileForge.Setup
@@ -7,7 +8,7 @@ namespace FileForge.Setup
     {
         private static readonly Regex variableRegex = new("[$][(]([^()]+)[)]", RegexOptions.Multiline | RegexOptions.RightToLeft | RegexOptions.Compiled);
 
-        public static string InjectVariables(string relativePath, VariableHandler variableHandler)
+        public static string InjectVariables(string relativePath, FolderMap folder)
         {
             var builder = new StringBuilder(relativePath);
             var matches = variableRegex.Matches(relativePath);
@@ -15,13 +16,13 @@ namespace FileForge.Setup
             {
                 var pattern = match.Captures[0].Value;
                 var variableName = match.Captures[1].Value;
-                var variable = variableHandler.Get(variableName);
+                var variable = folder.GetVariable(variableName);
 
                 if (variable is null || variable is not string stringVariable)
                     continue;
 
                 if (stringVariable.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
-                    throw new Exception();
+                    throw new Exception(); // to do
 
                 builder.Replace(pattern, stringVariable);
             }
