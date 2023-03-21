@@ -1,5 +1,6 @@
 ﻿using FileForge.Constants;
 using FileForge.Exceptions;
+using FileForge.Maps;
 using ImprovedConsole.Forms;
 using ImprovedConsole.Forms.Fields;
 using System.Collections.Immutable;
@@ -11,51 +12,59 @@ namespace FileForge.Setup
         private readonly Dictionary<string, IField> fields = new Dictionary<string, IField>();
         private readonly Dictionary<string, object?> variables = new Dictionary<string, object?>();
         private readonly Form form = new Form();
-        private readonly VariableMappings variableMappings;
+        private readonly FolderMap rootFolder;
 
         public object? Get(string name) => variables.GetValueOrDefault(name);
 
-        public VariableHandler(VariableMappings variableMappings)
+        public VariableHandler(FolderMap rootFolder)
         {
-            this.variableMappings = variableMappings;
+            this.rootFolder = rootFolder;
         }
 
         public Dictionary<string, object?> Variables => variables;
 
         public void Ask()
         {
-            if (!variableMappings.Variables.Any())
-                return;
-
-            foreach (var variable in variableMappings.Variables)
-            {
-                var formItem = CreateFormItem(variable);
-
-                switch (variable.Type)
-                {
-                    case VariableTypes.Text:
-                        AddText(formItem, variable);
-                        break;
-                    case VariableTypes.SingleSelect:
-                        AddSingleSelect(formItem, variable);
-                        break;
-                    case VariableTypes.MultiSelect:
-                        AddMultiSelect(formItem, variable);
-                        break;
-                    case VariableTypes.TextOption:
-                        AddOptionSelector(formItem, variable);
-                        break;
-                    default:
-                        break;
-                }
-
-                fields.Add(variable.Name, formItem.Field!);
-            }
+            AddFields(rootFolder);
 
             form.Run();
         }
 
-        private FormItem CreateFormItem(VariableMappings.Variable variable)
+        public void AddFields(FolderMap folderMap)
+        {
+            foreach (var (_, variable) in folderMap.Variables)
+                AddFields(variable);
+
+            foreach (var (_, folder) in folderMap.Folders)
+                AddFields(folder);
+        }
+
+        private void AddFields(VariableMap variable)
+        {
+            var formItem = CreateFormItem(variable);
+
+            switch (variable.Type)
+            {
+                case VariableTypes.Text:
+                    AddText(formItem, variable);
+                    break;
+                case VariableTypes.SingleSelect:
+                    AddSingleSelect(formItem, variable);
+                    break;
+                case VariableTypes.MultiSelect:
+                    AddMultiSelect(formItem, variable);
+                    break;
+                case VariableTypes.TextOption:
+                    AddOptionSelector(formItem, variable);
+                    break;
+                default:
+                    break;
+            }
+
+            fields.Add(variable.Name, formItem.Field!);
+        }
+
+        private FormItem CreateFormItem(VariableMap variable)
         {
             var options = new FormItemOptions();
 
@@ -79,7 +88,7 @@ namespace FileForge.Setup
             return form.Add(options);
         }
 
-        private void AddText(FormItem formItem, VariableMappings.Variable variable)
+        private void AddText(FormItem formItem, VariableMap variable)
         {
             formItem
                 .TextField(variable.Description)
@@ -94,7 +103,7 @@ namespace FileForge.Setup
                 });
         }
 
-        private void AddMultiSelect(FormItem formItem, VariableMappings.Variable variable)
+        private void AddMultiSelect(FormItem formItem, VariableMap variable)
         {
             formItem
                 .MultiSelect(variable.Description, () => variable.Options!)
@@ -109,7 +118,7 @@ namespace FileForge.Setup
                 });
         }
 
-        private void AddSingleSelect(FormItem formItem, VariableMappings.Variable variable)
+        private void AddSingleSelect(FormItem formItem, VariableMap variable)
         {
             formItem
                 .SingleSelect(variable.Description, () => variable.Options!)
@@ -124,7 +133,7 @@ namespace FileForge.Setup
                 });
         }
 
-        private void AddOptionSelector(FormItem formItem, VariableMappings.Variable variable)
+        private void AddOptionSelector(FormItem formItem, VariableMap variable)
         {
             formItem
                 .OptionSelector(variable.Description, () => variable.Options!)
