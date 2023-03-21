@@ -8,5 +8,10 @@
         public string? Condition { get; set; }
 
         public FolderMap? Parent { get; set; }
+
+        public IEnumerable<VariableMap> GetVariables()
+        {
+            return Parent?.GetVariables() ?? Enumerable.Empty<VariableMap>();
+        }
     }
 }

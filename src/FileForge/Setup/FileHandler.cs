@@ -1,6 +1,9 @@
 ﻿using FileForge.Constants;
+using FileForge.Maps;
 using ImprovedConsole.Forms;
 using ImprovedConsole.Forms.Fields.OptionSelectors;
+using Scriban;
+using Scriban.Runtime;
 
 namespace FileForge.Setup
 {
@@ -8,29 +11,27 @@ namespace FileForge.Setup
     {
         private readonly string templateDirectory;
         private readonly string targetDirectory;
-        private readonly VariableHandler variableHandler;
-        private readonly PathMappings.PathMap? pathMapping;
+        private readonly FileMap? file;
 
         public FileHandler(
             string templateDirectory,
             string targetDirectory,
-            VariableHandler variableHandler,
-            PathMappings.PathMap? pathMapping)
+            FileMap? file)
         {
             this.templateDirectory = templateDirectory;
             this.targetDirectory = targetDirectory;
-            this.variableHandler = variableHandler;
-            this.pathMapping = pathMapping;
+            this.file = file;
         }
 
         public void Create()
         {
-            if (pathMapping is null || !pathMapping.IsFile || pathMapping.Action == PathActions.Ignore)
+            if (file is null || file.Action == PathActions.Ignore)
                 return;
 
-            string content = GetContent(pathMapping, variableHandler);
+            string content = GetContent();
 
-            var relativePath = Path.GetRelativePath(templateDirectory, pathMapping.Path);
+            var relativePath = Path.GetRelativePath(templateDirectory, file.Path);
+            relativePath = PathVariableInjector.InjectVariables(relativePath, file.Parent!);
             var absolutePath = Path.GetFullPath(Path.Combine(targetDirectory, relativePath));
 
             if (!File.Exists(absolutePath))
@@ -41,26 +42,44 @@ namespace FileForge.Setup
 
             bool replaceAnswer = false;
 
-            if (pathMapping.FileExists == FileExistsActions.Ask)
+            if (file.FileExists == FileExistsActions.Ask)
             {
-                var form = new Form();
+                var form = new Form(new FormOptions
+                {
+                    ShowConfirmationForms = false
+                });
+
                 form.Add()
                     .OptionSelector($"The file {relativePath} already exists. Do you want to replace?", new[] { "y", "n" }, new OptionSelectorsOptions { Required = true })
                     .OnConfirm(v => replaceAnswer = v == "y");
+
                 form.Run();
             }
 
-            if (pathMapping.FileExists == FileExistsActions.Replace || replaceAnswer)
+            if (file.FileExists == FileExistsActions.Replace || replaceAnswer)
             {
                 File.Delete(absolutePath);
                 File.WriteAllText(absolutePath, content);
             }
         }
 
-        private static string GetContent(PathMappings.PathMap pathMapping, VariableHandler variableHandler)
+        private string GetContent()
         {
-            // to do: inject variables
-            return File.ReadAllText(pathMapping.Path);
+            var text = File.ReadAllText(file!.Path);
+
+            if (file.Action == PathActions.Copy)
+                return text;
+
+            var script = new ScriptObject();
+            var variables = file.GetVariables();
+            foreach (var variable in variables)
+                script.Add(variable.Name, variable.Answer);
+
+            var context = new TemplateContext();
+            context.PushGlobal(script);
+
+            var template = Template.Parse(text);
+            return template.Render(context);
         }
     }
 }

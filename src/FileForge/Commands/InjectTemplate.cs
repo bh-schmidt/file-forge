@@ -55,7 +55,7 @@ namespace FileForge.Commands
             var variableHandler = new VariableHandler(pathMappings.RootFolder);
             variableHandler.Ask();
 
-            var folderHandler = new FolderHandler(templateDirectory, targetFolder, variableHandler, pathMappings);
+            var folderHandler = new FolderHandler(templateDirectory, targetFolder, pathMappings.RootFolder);
             folderHandler.Create();
         }
     }

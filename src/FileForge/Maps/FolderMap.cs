@@ -12,7 +12,6 @@
         public Dictionary<string, FolderMap> Folders { get; set; } = new();
         public Dictionary<string, FileMap> Files { get; set; } = new();
         public Dictionary<string, VariableMap> Variables { get; set; } = new();
-        public Dictionary<string, object?> VariableValues { get; set; } = new();
 
         public bool VariableExists(string name)
         {
@@ -27,7 +26,14 @@
 
         public object? GetVariable(string name)
         {
-            return Variables.GetValueOrDefault(name) ?? Parent?.GetVariable(name);
+            return Variables.GetValueOrDefault(name)?.Answer ?? Parent?.GetVariable(name);
+        }
+
+        public IEnumerable<VariableMap> GetVariables()
+        {
+            return Variables
+                .Select(e => e.Value)
+                .Concat(Parent?.GetVariables() ?? Enumerable.Empty<VariableMap>());
         }
     }
 }

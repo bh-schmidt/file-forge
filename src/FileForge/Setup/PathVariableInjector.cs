@@ -10,12 +10,16 @@ namespace FileForge.Setup
 
         public static string InjectVariables(string relativePath, FolderMap folder)
         {
-            var builder = new StringBuilder(relativePath);
             var matches = variableRegex.Matches(relativePath);
-            foreach (var match in matches.DistinctBy(m => m.Captures[1].Value))
+            if (!matches.Any())
+                return relativePath;
+
+            var builder = new StringBuilder(relativePath);
+
+            foreach (var match in matches.DistinctBy(m => m.Groups[1].Value))
             {
                 var pattern = match.Captures[0].Value;
-                var variableName = match.Captures[1].Value;
+                var variableName = match.Groups[1].Value;
                 var variable = folder.GetVariable(variableName);
 
                 if (variable is null || variable is not string stringVariable)

@@ -1,6 +1,7 @@
 ﻿using FileForge.Constants;
 using FileForge.Exceptions;
 using FileForge.Maps;
+using Flee.PublicTypes;
 using ImprovedConsole.Forms;
 using ImprovedConsole.Forms.Fields;
 using System.Collections.Immutable;
@@ -28,18 +29,18 @@ namespace FileForge.Setup
         public void AddFields(FolderMap folderMap)
         {
             foreach (var (_, variable) in folderMap.Variables)
-                AddFields(variable);
+                AddFields(folderMap, variable);
 
             foreach (var (_, folder) in folderMap.Folders)
                 AddFields(folder);
         }
 
-        private void AddFields(VariableMap variable)
+        private void AddFields(FolderMap folderMap, VariableMap variable)
         {
             if (fields.ContainsKey(variable.Name))
                 return; // to do
 
-            var formItem = CreateFormItem(variable);
+            var formItem = CreateFormItem(folderMap, variable);
 
             switch (variable.Type)
             {
@@ -62,7 +63,7 @@ namespace FileForge.Setup
             fields.Add(variable.Name, formItem.Field!);
         }
 
-        private FormItem CreateFormItem(VariableMap variable)
+        private FormItem CreateFormItem(FolderMap folderMap, VariableMap variable)
         {
             var options = new FormItemOptions();
 
@@ -83,6 +84,24 @@ namespace FileForge.Setup
                 options.Dependencies = new FormItemDependencies(dependencies);
             }
 
+            if (!string.IsNullOrWhiteSpace(variable.Condition))
+            {
+                options.Condition = () =>
+                {
+                    var context = new ExpressionContext();
+
+                    var variables = folderMap
+                        .GetVariables()
+                        .Where(e => e.Answer is not null);
+
+                    foreach (var variable in variables)
+                        context.Variables.Add(variable.Name, variable.Answer!);
+
+                    var expression = context.CompileGeneric<bool>(variable.Condition);
+                    return expression.Evaluate();
+                };
+            }
+
             return form.Add(options);
         }
 
@@ -92,11 +111,11 @@ namespace FileForge.Setup
                 .TextField(variable.Description)
                 .OnConfirm(value =>
                 {
-                    variable.Result = value;
+                    variable.Answer = value;
                 })
                 .OnReset(() =>
                 {
-                    variable.Result = null;
+                    variable.Answer = null;
                 });
         }
 
@@ -106,11 +125,11 @@ namespace FileForge.Setup
                 .MultiSelect(variable.Description, () => variable.Options!)
                 .OnConfirm(options =>
                 {
-                    variable.Result = options.Select(e => e.Value);
+                    variable.Answer = options.Select(e => e.Value);
                 })
                 .OnReset(() =>
                 {
-                    variable.Result = null;
+                    variable.Answer = null;
                 });
         }
 
@@ -120,11 +139,11 @@ namespace FileForge.Setup
                 .SingleSelect(variable.Description, () => variable.Options!)
                 .OnConfirm(option =>
                 {
-                    variable.Result = option?.Value;
+                    variable.Answer = option?.Value;
                 })
                 .OnReset(() =>
                 {
-                    variable.Result = null;
+                    variable.Answer = null;
                 });
         }
 
@@ -134,11 +153,11 @@ namespace FileForge.Setup
                 .OptionSelector(variable.Description, () => variable.Options!)
                 .OnConfirm(value =>
                 {
-                    variable.Result = value;
+                    variable.Answer = value;
                 })
                 .OnReset(() =>
                 {
-                    variable.Result = null;
+                    variable.Answer = null;
                 });
         }
     }
