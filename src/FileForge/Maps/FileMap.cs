@@ -1,10 +1,12 @@
-﻿namespace FileForge.Maps
+﻿using FileForge.Constants;
+
+namespace FileForge.Maps
 {
     public class FileMap
     {
         public string Path { get; set; } = null!;
-        public string Action { get; set; } = null!;
-        public string? FileExists { get; set; } = null!;
+        public PathAction Action { get; set; } = null!;
+        public FileExistsAction? FileExists { get; set; }
         public string? Condition { get; set; }
 
         public FolderMap? Parent { get; set; }

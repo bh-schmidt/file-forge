@@ -34,9 +34,9 @@ namespace FileForge
 
         public class VariableConfig
         {
-            public string Name { get; set; } = null!;
-            public string Description { get; set; } = null!;
-            public string Type { get; set; } = VariableTypes.Default;
+            public string? Name { get; set; } = null!;
+            public string? Description { get; set; } = null!;
+            public string? Type { get; set; }
             public string[]? Dependencies { get; set; }
             public string? Condition { get; set; }
             public string? Required { get; set; }
@@ -46,8 +46,8 @@ namespace FileForge
         public class PathConfig
         {
             private static readonly char[] illegalCharacters = new[] { '@', '%', '&', ':', '"', '\'', '<', '>', '|', '~', '`', '#', '^', '+', '=', '{', '}', '[', ']', ';', '!', };
-            public string Pattern { get; set; } = null!;
-            public string Action { get; set; } = PathActions.Default;
+            public string? Pattern { get; set; }
+            public string? Action { get; set; }
             public string? FileExists { get; set; }
             public string? FolderExists { get; set; }
             public string? Condition { get; set; }

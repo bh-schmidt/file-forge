@@ -21,8 +21,8 @@ namespace FileForge.Setup
             RootFolder = new FolderMap
             {
                 Path = templateDirectory,
-                Action = PathActions.Default,
-                FolderExists = FolderExistsActions.Default,
+                Action = PathAction.Default,
+                FolderExists = FolderExistsAction.Default,
                 TemplateConfig = templateConfig,
             };
         }
@@ -61,7 +61,7 @@ namespace FileForge.Setup
 
             var folderPaths = Directory
                 .EnumerateDirectories(currentDirectory)
-                .Where(dir => !folderMap.Folders.ContainsKey(dir) || folderMap.Folders[dir].Action != PathActions.Ignore);
+                .Where(dir => !folderMap.Folders.ContainsKey(dir) || folderMap.Folders[dir].Action != PathAction.Ignore);
 
             foreach (var folderPath in folderPaths)
             {
@@ -107,12 +107,12 @@ namespace FileForge.Setup
             var config = new FileMap
             {
                 Path = path,
-                Action = pathConfig.Action ?? PathActions.Default,
+                Action = pathConfig.Action ?? PathAction.Default,
                 Condition = pathConfig.Condition,
             };
 
-            if (config.Action != PathActions.Ignore)
-                config.FileExists = pathConfig.FileExists ?? FileExistsActions.Default;
+            if (config.Action != PathAction.Ignore)
+                config.FileExists = pathConfig.FileExists ?? FileExistsAction.Default;
 
             if (!tempFiles.TryAdd(path, config))
                 throw new DuplicatePathException(directory);
@@ -126,12 +126,12 @@ namespace FileForge.Setup
             var config = new FolderMap
             {
                 Path = path,
-                Action = pathConfig.Action ?? PathActions.Default,
+                Action = pathConfig.Action ?? PathAction.Default,
                 Condition = pathConfig.Condition,
             };
 
-            if (config.Action != PathActions.Ignore)
-                config.FolderExists = pathConfig.FolderExists ?? FolderExistsActions.Default;
+            if (config.Action != PathAction.Ignore)
+                config.FolderExists = pathConfig.FolderExists ?? FolderExistsAction.Default;
 
             if (!tempFolders.TryAdd(path, config))
                 throw new DuplicatePathException(directory);
@@ -146,8 +146,8 @@ namespace FileForge.Setup
             var config = new FolderMap
             {
                 Path = path,
-                Action = PathActions.Default,
-                FolderExists = FolderExistsActions.Default,
+                Action = PathAction.Default,
+                FolderExists = FolderExistsAction.Default,
                 Parent = previousFolder
             };
 
@@ -163,8 +163,8 @@ namespace FileForge.Setup
             var config = new FileMap
             {
                 Path = path,
-                Action = PathActions.Default,
-                FileExists = FileExistsActions.Default,
+                Action = PathAction.Default,
+                FileExists = FileExistsAction.Default,
                 Parent = folder
             };
 
@@ -180,7 +180,7 @@ namespace FileForge.Setup
             var config = new FileMap
             {
                 Path = path,
-                Action = PathActions.Ignore,
+                Action = PathAction.Ignore,
                 Parent = folder
             };
 

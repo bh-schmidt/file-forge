@@ -1,10 +1,12 @@
-﻿namespace FileForge.Maps
+﻿using FileForge.Constants;
+
+namespace FileForge.Maps
 {
     public class FolderMap
     {
         public string Path { get; set; } = null!;
-        public string Action { get; set; } = null!;
-        public string? FolderExists { get; set; } = null!;
+        public PathAction Action { get; set; } = null!;
+        public FolderExistsAction? FolderExists { get; set; } = null!;
         public string? Condition { get; set; }
 
         public FolderMap? Parent { get; set; }
@@ -34,6 +36,11 @@
             return Variables
                 .Select(e => e.Value)
                 .Concat(Parent?.GetVariables() ?? Enumerable.Empty<VariableMap>());
+        }
+
+        public IEnumerable<VariableMap> GetAnsweredVariables()
+        {
+            return GetVariables().Where(e => e.Answer is not null);
         }
     }
 }

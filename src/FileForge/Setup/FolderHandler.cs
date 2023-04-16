@@ -26,7 +26,7 @@ namespace FileForge.Setup
 
         private void HandleFolder(FolderMap? folder)
         {
-            if (folder is null || folder.Action == PathActions.Ignore)
+            if (folder is null || folder.Action == PathAction.Ignore)
                 return;
 
             DirectoryInfo directoryInfo = new DirectoryInfo(folder.Path);
@@ -52,7 +52,7 @@ namespace FileForge.Setup
         private void EnsureFolder(FolderMap folder, DirectoryInfo directoryInfo)
         {
             var relativePath = Path.GetRelativePath(templateDirectory, directoryInfo.FullName);
-            if (folder.Action == PathActions.Inject && relativePath.Contains('$'))
+            if (folder.Action == PathAction.Inject && relativePath.Contains('$'))
                 relativePath = PathVariableInjector.InjectVariables(relativePath, folder);
 
             var absolutePath = Path.GetFullPath(Path.Combine(targetDirectory, relativePath));
@@ -63,7 +63,7 @@ namespace FileForge.Setup
                 return;
             }
 
-            if (folder.FolderExists == FolderExistsActions.Clear)
+            if (folder.FolderExists == FolderExistsAction.Clear)
             {
                 Directory.Delete(absolutePath);
                 Directory.CreateDirectory(absolutePath);

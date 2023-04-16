@@ -45,6 +45,8 @@ namespace FileForge.Setup
 
         private void Validate(FolderMap folder, TemplateConfig.VariableConfig variable)
         {
+            // validate the variableMap instead of templateconfig
+
             if (string.IsNullOrWhiteSpace(variable.Name))
                 return; // to do
 
@@ -54,10 +56,7 @@ namespace FileForge.Setup
             if (string.IsNullOrWhiteSpace(variable.Description))
                 return; // to do
 
-            if (!VariableTypes.IsValid(variable.Type))
-                return; // to do
-
-            if (variable.Type is VariableTypes.TextOption or VariableTypes.SingleSelect or VariableTypes.MultiSelect)
+            if (variable.Type == VariableType.TextOption || variable.Type == VariableType.SingleSelect || variable.Type == VariableType.MultiSelect)
             {
                 if (variable.Options is null || !variable.Options.Any())
                     return; // to do

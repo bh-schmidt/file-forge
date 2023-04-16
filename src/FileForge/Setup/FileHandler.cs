@@ -1,7 +1,7 @@
 ﻿using FileForge.Constants;
 using FileForge.Maps;
 using ImprovedConsole.Forms;
-using ImprovedConsole.Forms.Fields.OptionSelectors;
+using ImprovedConsole.Forms.Fields.TextOptions;
 using Scriban;
 using Scriban.Runtime;
 
@@ -25,7 +25,7 @@ namespace FileForge.Setup
 
         public void Create()
         {
-            if (file is null || file.Action == PathActions.Ignore)
+            if (file is null || file.Action == PathAction.Ignore)
                 return;
 
             string content = GetContent();
@@ -42,7 +42,7 @@ namespace FileForge.Setup
 
             bool replaceAnswer = false;
 
-            if (file.FileExists == FileExistsActions.Ask)
+            if (file.FileExists == FileExistsAction.Ask)
             {
                 var form = new Form(new FormOptions
                 {
@@ -50,13 +50,13 @@ namespace FileForge.Setup
                 });
 
                 form.Add()
-                    .OptionSelector($"The file {relativePath} already exists. Do you want to replace?", new[] { "y", "n" }, new OptionSelectorsOptions { Required = true })
+                    .TextOption($"The file {relativePath} already exists. Do you want to replace?", new[] { "y", "n" }, new TextOptionOptions { Required = true })
                     .OnConfirm(v => replaceAnswer = v == "y");
 
                 form.Run();
             }
 
-            if (file.FileExists == FileExistsActions.Replace || replaceAnswer)
+            if (file.FileExists == FileExistsAction.Replace || replaceAnswer)
             {
                 File.Delete(absolutePath);
                 File.WriteAllText(absolutePath, content);
@@ -67,7 +67,7 @@ namespace FileForge.Setup
         {
             var text = File.ReadAllText(file!.Path);
 
-            if (file.Action == PathActions.Copy)
+            if (file.Action == PathAction.Copy)
                 return text;
 
             var script = new ScriptObject();

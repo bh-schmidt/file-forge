@@ -10,7 +10,7 @@ namespace FileForge.Commands
         public InjectTemplate() : base("Inject a template into the provided folder")
         {
             AddParameter("targetDirectory", "The directory that will be created at the provided directory");
-            AddOption("--template", "The directory where the template is saved");
+            AddOption("--template", "The directory of the template");
             SetHandler(arguments => Handle(arguments));
         }
 

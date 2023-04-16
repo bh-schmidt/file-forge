@@ -1,9 +1,16 @@
 ﻿using FileForge.Constants;
 using FileForge.Exceptions;
+using FileForge.Helpers;
 using FileForge.Maps;
 using Flee.PublicTypes;
 using ImprovedConsole.Forms;
 using ImprovedConsole.Forms.Fields;
+using ImprovedConsole.Forms.Fields.DecimalFields;
+using ImprovedConsole.Forms.Fields.LongFields;
+using ImprovedConsole.Forms.Fields.MultiSelects;
+using ImprovedConsole.Forms.Fields.SingleSelects;
+using ImprovedConsole.Forms.Fields.TextFields;
+using ImprovedConsole.Forms.Fields.TextOptions;
 using System.Collections.Immutable;
 
 namespace FileForge.Setup
@@ -42,25 +49,48 @@ namespace FileForge.Setup
 
             var formItem = CreateFormItem(folderMap, variable);
 
-            switch (variable.Type)
-            {
-                case VariableTypes.Text:
-                    AddText(formItem, variable);
-                    break;
-                case VariableTypes.SingleSelect:
-                    AddSingleSelect(formItem, variable);
-                    break;
-                case VariableTypes.MultiSelect:
-                    AddMultiSelect(formItem, variable);
-                    break;
-                case VariableTypes.TextOption:
-                    AddOptionSelector(formItem, variable);
-                    break;
-                default:
-                    break;
-            }
+            AddFields(variable, formItem);
 
             fields.Add(variable.Name, formItem.Field!);
+        }
+
+        private void AddFields(VariableMap variable, FormItem formItem)
+        {
+            if (variable.Type == VariableType.Text)
+            {
+                AddText(formItem, variable);
+                return;
+            }
+
+            if (variable.Type == VariableType.Long)
+            {
+                AddLong(formItem, variable);
+                return;
+            }
+
+            if (variable.Type == VariableType.Decimal)
+            {
+                AddDecimal(formItem, variable);
+                return;
+            }
+
+            if (variable.Type == VariableType.SingleSelect)
+            {
+                AddSingleSelect(formItem, variable);
+                return;
+            }
+
+            if (variable.Type == VariableType.MultiSelect)
+            {
+                AddMultiSelect(formItem, variable);
+                return;
+            }
+
+            if (variable.Type == VariableType.TextOption)
+            {
+                AddTextOption(formItem, variable);
+                return;
+            }
         }
 
         private FormItem CreateFormItem(FolderMap folderMap, VariableMap variable)
@@ -88,17 +118,8 @@ namespace FileForge.Setup
             {
                 options.Condition = () =>
                 {
-                    var context = new ExpressionContext();
-
-                    var variables = folderMap
-                        .GetVariables()
-                        .Where(e => e.Answer is not null);
-
-                    foreach (var variable in variables)
-                        context.Variables.Add(variable.Name, variable.Answer!);
-
-                    var expression = context.CompileGeneric<bool>(variable.Condition);
-                    return expression.Evaluate();
+                    var variables = folderMap.GetAnsweredVariables();
+                    return ExpressionEvaluation.Evaluate(variable.Condition, variables);
                 };
             }
 
@@ -107,8 +128,51 @@ namespace FileForge.Setup
 
         private void AddText(FormItem formItem, VariableMap variable)
         {
+            TextFieldOptions options = new TextFieldOptions();
+
+            if (!string.IsNullOrWhiteSpace(variable.Required))
+                options.Required = variable.Required == "true";
+
             formItem
-                .TextField(variable.Description)
+                .TextField(variable.Description, options)
+                .OnConfirm(value =>
+                {
+                    variable.Answer = value;
+                })
+                .OnReset(() =>
+                {
+                    variable.Answer = null;
+                });
+        }
+
+        private void AddLong(FormItem formItem, VariableMap variable)
+        {
+            LongFieldOptions options = new LongFieldOptions();
+
+            if (!string.IsNullOrWhiteSpace(variable.Required))
+                options.Required = variable.Required == "true";
+
+            formItem
+                .LongField(variable.Description, options)
+                .OnConfirm(value =>
+                {
+                    variable.Answer = value;
+                })
+                .OnReset(() =>
+                {
+                    variable.Answer = null;
+                });
+        }
+
+        private void AddDecimal(FormItem formItem, VariableMap variable)
+        {
+            DecimalFieldOptions options = new DecimalFieldOptions();
+
+            if (!string.IsNullOrWhiteSpace(variable.Required))
+                options.Required = variable.Required == "true";
+
+            formItem
+                .DecimalField(variable.Description)
                 .OnConfirm(value =>
                 {
                     variable.Answer = value;
@@ -121,6 +185,11 @@ namespace FileForge.Setup
 
         private void AddMultiSelect(FormItem formItem, VariableMap variable)
         {
+            MultiSelectOptions options = new MultiSelectOptions();
+
+            if (!string.IsNullOrWhiteSpace(variable.Required))
+                options.Required = variable.Required == "true";
+
             formItem
                 .MultiSelect(variable.Description, () => variable.Options!)
                 .OnConfirm(options =>
@@ -135,6 +204,11 @@ namespace FileForge.Setup
 
         private void AddSingleSelect(FormItem formItem, VariableMap variable)
         {
+            SingleSelectOptions options = new SingleSelectOptions();
+
+            if (!string.IsNullOrWhiteSpace(variable.Required))
+                options.Required = variable.Required == "true";
+
             formItem
                 .SingleSelect(variable.Description, () => variable.Options!)
                 .OnConfirm(option =>
@@ -147,10 +221,15 @@ namespace FileForge.Setup
                 });
         }
 
-        private void AddOptionSelector(FormItem formItem, VariableMap variable)
+        private void AddTextOption(FormItem formItem, VariableMap variable)
         {
+            TextOptionOptions options = new TextOptionOptions();
+
+            if (!string.IsNullOrWhiteSpace(variable.Required))
+                options.Required = variable.Required == "true";
+
             formItem
-                .OptionSelector(variable.Description, () => variable.Options!)
+                .TextOption(variable.Description, () => variable.Options!)
                 .OnConfirm(value =>
                 {
                     variable.Answer = value;
