@@ -44,7 +44,7 @@ namespace FileForge.Setup
         private void AddFields(FolderMap folderMap, ParameterMap parameter)
         {
             if (fields.ContainsKey(parameter.Name))
-                return; // to do
+                throw new DuplicateValueException("parameter name", parameter.Name);
 
             var formItem = CreateFormItem(folderMap, parameter);
 
@@ -103,7 +103,7 @@ namespace FileForge.Setup
                     .Distinct();
 
                 if (invalidDependencies.Any())
-                    throw new InvalidDependencyException(parameter.Name, invalidDependencies);
+                    throw new InvalidFieldException(nameof(TemplateConfig.ParameterConfig.Dependencies), invalidDependencies);
 
                 var dependencies = parameter.Dependencies
                     .Distinct()

@@ -82,7 +82,7 @@ namespace FileForge.Setup
             foreach (var pathConfig in templateConfig.Paths)
             {
                 if (string.IsNullOrWhiteSpace(pathConfig.Pattern))
-                    throw new InvalidPatternException(pathConfig.Pattern);
+                    throw new InvalidFieldException(nameof(pathConfig.Pattern), pathConfig.Pattern);
 
                 var files = Directory
                     .EnumerateFiles(currentDirectory, "*", SearchOption.AllDirectories)
@@ -117,7 +117,6 @@ namespace FileForge.Setup
             if (!tempFiles.TryAdd(path, config))
                 throw new DuplicatePathException(directory);
         }
-
 
         private void AddTempFolder(TemplateConfig.PathConfig pathConfig, string directory)
         {

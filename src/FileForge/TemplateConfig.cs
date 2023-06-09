@@ -8,6 +8,8 @@ namespace FileForge
     public class TemplateConfig
     {
         public const string FileName = "_template-config.json";
+
+        public string FilePath { get; private set; } = null!;
         public IEnumerable<ParameterConfig> Parameters { get; set; } = null!;
         public IEnumerable<PathConfig> Paths { get; set; } = null!;
 
@@ -18,18 +20,13 @@ namespace FileForge
 
             using var file = File.OpenText(filePath);
             var serializer = new JsonSerializer();
-            return (TemplateConfig?)serializer.Deserialize(file, typeof(TemplateConfig));
-        }
-
-        public static TemplateConfig? GetTemplateConfig(string folderPath)
-        {
-            var filePath = Path.Combine(folderPath, FileName);
-            if (!File.Exists(filePath))
+            var config = (TemplateConfig?)serializer.Deserialize(file, typeof(TemplateConfig));
+            if (config is null)
                 return null;
 
-            using var file = File.OpenText(filePath);
-            var serializer = new JsonSerializer();
-            return (TemplateConfig?)serializer.Deserialize(file, typeof(TemplateConfig));
+            config.FilePath = Path.GetFullPath(filePath);
+
+            return config;
         }
 
         public class ParameterConfig

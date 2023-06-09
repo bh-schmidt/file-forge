@@ -1,25 +1,32 @@
-﻿namespace FileForge.Constants
+﻿using FileForge.Exceptions;
+using FileForge.Helpers;
+
+namespace FileForge.Constants
 {
     public class FolderExistsAction
     {
-        private readonly string value;
-
         public static readonly FolderExistsAction None = "none";
         public static readonly FolderExistsAction Clear = "clear";
         public static readonly FolderExistsAction Default = None;
 
-        private static readonly FolderExistsAction[] allActions = new[] { None, Clear };
+        private static readonly HashSet<string> allActions = Enumeration
+            .GetAll<FolderExistsAction>()
+            .Select(e => e.Value)
+            .Distinct()
+            .ToHashSet();
 
-        public FolderExistsAction(string value)
+        private FolderExistsAction(string value)
         {
-            if (allActions is not null && !allActions.Any(e => e.value == value))
-                throw new Exception(); // to do
+            if (allActions is not null && !allActions.Contains(value))
+                throw new InvalidFieldException("folder exists action", value);
 
-            this.value = value;
+            Value = value;
         }
 
+        public string Value { get; set; }
+
         public static implicit operator FolderExistsAction(string value) => new FolderExistsAction(value);
-        public static bool operator ==(FolderExistsAction var1, FolderExistsAction var2) => var1.value == var2.value;
-        public static bool operator !=(FolderExistsAction var1, FolderExistsAction var2) => var1.value != var2.value;
+        public static bool operator ==(FolderExistsAction var1, FolderExistsAction var2) => var1.Value == var2.Value;
+        public static bool operator !=(FolderExistsAction var1, FolderExistsAction var2) => var1.Value != var2.Value;
     }
 }
