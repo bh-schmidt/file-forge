@@ -17,6 +17,8 @@
                 throw new Exception(); // to do
 
             this.value = value;
+
+            string a = """aa""";
         }
 
         public static implicit operator PathAction(string value) => new PathAction(value);

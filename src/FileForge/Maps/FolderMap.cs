@@ -13,34 +13,34 @@ namespace FileForge.Maps
         public TemplateConfig? TemplateConfig { get; set; }
         public Dictionary<string, FolderMap> Folders { get; set; } = new();
         public Dictionary<string, FileMap> Files { get; set; } = new();
-        public Dictionary<string, VariableMap> Variables { get; set; } = new();
+        public Dictionary<string, ParameterMap> Parameters { get; set; } = new();
 
-        public bool VariableExists(string name)
+        public bool ParameterExists(string name)
         {
-            if (Variables.ContainsKey(name))
+            if (Parameters.ContainsKey(name))
                 return true;
 
             if (Parent is null)
                 return false;
 
-            return Parent.VariableExists(name);
+            return Parent.ParameterExists(name);
         }
 
-        public object? GetVariable(string name)
+        public object? GetParameter(string name)
         {
-            return Variables.GetValueOrDefault(name)?.Answer ?? Parent?.GetVariable(name);
+            return Parameters.GetValueOrDefault(name)?.Value ?? Parent?.GetParameter(name);
         }
 
-        public IEnumerable<VariableMap> GetVariables()
+        public IEnumerable<ParameterMap> GetParameters()
         {
-            return Variables
+            return Parameters
                 .Select(e => e.Value)
-                .Concat(Parent?.GetVariables() ?? Enumerable.Empty<VariableMap>());
+                .Concat(Parent?.GetParameters() ?? Enumerable.Empty<ParameterMap>());
         }
 
-        public IEnumerable<VariableMap> GetAnsweredVariables()
+        public IEnumerable<ParameterMap> GetAnsweredParameters()
         {
-            return GetVariables().Where(e => e.Answer is not null);
+            return GetParameters().Where(e => e.Value is not null);
         }
     }
 }

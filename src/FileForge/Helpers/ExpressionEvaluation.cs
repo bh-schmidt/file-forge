@@ -5,12 +5,12 @@ namespace FileForge.Helpers
 {
     public class ExpressionEvaluation
     {
-        public static bool Evaluate(string expression, IEnumerable<VariableMap> variables)
+        public static bool Evaluate(string expression, IEnumerable<ParameterMap> parameters)
         {
             var context = new ExpressionContext();
 
-            foreach (var variable in variables)
-                context.Variables.Add(variable.Name, variable.Answer!);
+            foreach (var parameter in parameters)
+                context.Variables.Add(parameter.Name, parameter.Value!);
 
             var genericExpression = context.CompileGeneric<bool>(expression);
             return genericExpression.Evaluate();

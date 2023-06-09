@@ -8,7 +8,7 @@ namespace FileForge
     public class TemplateConfig
     {
         public const string FileName = "_template-config.json";
-        public IEnumerable<VariableConfig> Variables { get; set; } = null!;
+        public IEnumerable<ParameterConfig> Parameters { get; set; } = null!;
         public IEnumerable<PathConfig> Paths { get; set; } = null!;
 
         public static TemplateConfig? ReadTemplateConfig(string filePath)
@@ -32,7 +32,7 @@ namespace FileForge
             return (TemplateConfig?)serializer.Deserialize(file, typeof(TemplateConfig));
         }
 
-        public class VariableConfig
+        public class ParameterConfig
         {
             public string? Name { get; set; } = null!;
             public string? Description { get; set; } = null!;

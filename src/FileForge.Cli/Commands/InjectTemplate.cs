@@ -3,7 +3,7 @@ using FileForge.Setup;
 using ImprovedConsole.CommandRunners.Arguments;
 using ImprovedConsole.CommandRunners.Commands;
 
-namespace FileForge.Commands
+namespace FileForge.Cli.Commands
 {
     public class InjectTemplate : Command
     {
@@ -49,11 +49,11 @@ namespace FileForge.Commands
             var pathMappings = new PathMappings(templateDirectory, templateConfig);
             pathMappings.Map();
 
-            var variableMappings = new VariableMappings(pathMappings.RootFolder);
-            variableMappings.Map();
+            var parameterMappings = new ParameterMappings(pathMappings.RootFolder);
+            parameterMappings.Map();
 
-            var variableHandler = new VariableHandler(pathMappings.RootFolder);
-            variableHandler.Ask();
+            var parameterHandler = new ParameterHandler(pathMappings.RootFolder);
+            parameterHandler.Ask();
 
             var folderHandler = new FolderHandler(templateDirectory, targetFolder, pathMappings.RootFolder);
             folderHandler.Create();

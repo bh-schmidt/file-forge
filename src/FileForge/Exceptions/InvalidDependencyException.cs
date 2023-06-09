@@ -2,13 +2,13 @@
 {
     public class InvalidDependencyException : Exception
     {
-        private readonly string variableName;
-        private readonly IEnumerable<string> invalidDependencies;
-
-        public InvalidDependencyException(string variableName, IEnumerable<string> invalidDependencies)
+        public InvalidDependencyException(string parameterName, IEnumerable<string> invalidDependencies)
         {
-            this.variableName = variableName;
-            this.invalidDependencies = invalidDependencies;
+            ParameterName = parameterName;
+            InvalidDependencies = invalidDependencies;
         }
+
+        public string ParameterName { get; }
+        public IEnumerable<string> InvalidDependencies { get; }
     }
 }

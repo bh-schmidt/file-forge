@@ -31,7 +31,7 @@ namespace FileForge.Setup
             string content = GetContent();
 
             var relativePath = Path.GetRelativePath(templateDirectory, file.Path);
-            relativePath = PathVariableInjector.InjectVariables(relativePath, file.Parent!);
+            relativePath = PathParameterInjector.InjectParameter(relativePath, file.Parent!);
             var absolutePath = Path.GetFullPath(Path.Combine(targetDirectory, relativePath));
 
             if (!File.Exists(absolutePath))
@@ -71,9 +71,9 @@ namespace FileForge.Setup
                 return text;
 
             var script = new ScriptObject();
-            var variables = file.GetVariables();
-            foreach (var variable in variables)
-                script.Add(variable.Name, variable.Answer);
+            var parameters = file.GetParameters();
+            foreach (var parameter in parameters)
+                script.Add(parameter.Name, parameter.Value);
 
             var context = new TemplateContext();
             context.PushGlobal(script);

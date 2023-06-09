@@ -11,9 +11,9 @@ namespace FileForge.Maps
 
         public FolderMap? Parent { get; set; }
 
-        public IEnumerable<VariableMap> GetVariables()
+        public IEnumerable<ParameterMap> GetParameters()
         {
-            return Parent?.GetVariables() ?? Enumerable.Empty<VariableMap>();
+            return Parent?.GetParameters() ?? Enumerable.Empty<ParameterMap>();
         }
     }
 }

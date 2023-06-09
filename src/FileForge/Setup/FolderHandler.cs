@@ -53,7 +53,7 @@ namespace FileForge.Setup
         {
             var relativePath = Path.GetRelativePath(templateDirectory, directoryInfo.FullName);
             if (folder.Action == PathAction.Inject && relativePath.Contains('$'))
-                relativePath = PathVariableInjector.InjectVariables(relativePath, folder);
+                relativePath = PathParameterInjector.InjectParameter(relativePath, folder);
 
             var absolutePath = Path.GetFullPath(Path.Combine(targetDirectory, relativePath));
 
