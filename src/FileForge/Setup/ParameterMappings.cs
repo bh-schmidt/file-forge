@@ -1,10 +1,13 @@
 ﻿using FileForge.Constants;
+using FileForge.Exceptions;
 using FileForge.Maps;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FileForge.Setup
 {
     public class ParameterMappings
     {
+        private HashSet<ParameterType> optionsParams = new() { ParameterType.TextOption, ParameterType.SingleSelect, ParameterType.MultiSelect };
         private FolderMap rootFolder;
 
         public ParameterMappings(FolderMap rootFolder)
@@ -31,11 +34,11 @@ namespace FileForge.Setup
         {
             Validate(folderMap, parameter);
 
-            folderMap.Parameters.Add(parameter.Name, new ParameterMap
+            folderMap.Parameters.Add(parameter.Name!, new ParameterMap
             {
-                Name = parameter.Name,
-                Description = parameter.Description,
-                Type = parameter.Type,
+                Name = parameter.Name!,
+                Description = parameter.Description!,
+                Type = parameter.Type!,
                 Dependencies = parameter.Dependencies,
                 Condition = parameter.Condition,
                 Required = parameter.Required,
@@ -43,46 +46,39 @@ namespace FileForge.Setup
             });
         }
 
-        private void Validate(FolderMap folder, TemplateConfig.ParameterConfig parameter)
+        private void Validate(FolderMap folder,  TemplateConfig.ParameterConfig parameter)
         {
-            // to do: validate the parameterMap instead of templateconfig
-
             if (string.IsNullOrWhiteSpace(parameter.Name))
-                return; // to do
+                throw new InvalidFieldException("parameter name", parameter.Name);
 
             if (folder.Parameters.ContainsKey(parameter.Name))
-                return; // to do
+                throw new DuplicateValueException("parameter name", parameter.Name);
 
             if (string.IsNullOrWhiteSpace(parameter.Description))
-                return; // to do
+                throw new InvalidFieldException("parameter description", parameter.Description);
 
             if (parameter.Type is null)
-            {
-                return; // to do
-            }
+                throw new InvalidFieldException("parameter type", parameter.Type);
 
-            if (parameter.Type == ParameterType.TextOption || parameter.Type == ParameterType.SingleSelect || parameter.Type == ParameterType.MultiSelect)
+            if (optionsParams.Contains( parameter.Type))
             {
                 if (parameter.Options is null || !parameter.Options.Any())
-                    return; // to do
+                    throw new InvalidFieldException("parameter options", parameter.Options);
 
                 if (parameter.Options.Any(option => option is null || !option.Any()))
-                    return; // to do
+                    throw new InvalidFieldException("parameter options", parameter.Options);
             }
 
-            if (parameter.Dependencies is not null)
+            if (parameter.Dependencies is not null && parameter.Dependencies.Any())
             {
-                if (!parameter.Dependencies.Any())
-                    return; // to do
-
                 if (parameter.Dependencies.Any(dependency => dependency is null || !dependency.Any()))
-                    return; // to do
+                    throw new InvalidFieldException("parameter dependencies", parameter.Dependencies);
 
                 var invalidDependencies = parameter.Dependencies
                     .Where(dependency => !folder.ParameterExists(dependency));
 
                 if (invalidDependencies.Any())
-                    return; // to do
+                    throw new InvalidFieldException("parameter dependencies", invalidDependencies);
             }
         }
     }

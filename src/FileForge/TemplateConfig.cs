@@ -1,4 +1,5 @@
 ﻿using FileForge.Constants;
+using FileForge.Exceptions;
 using Newtonsoft.Json;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,6 +14,15 @@ namespace FileForge
         public IEnumerable<ParameterConfig> Parameters { get; set; } = null!;
         public IEnumerable<PathConfig> Paths { get; set; } = null!;
 
+        private void SetFilePath(string filePath)
+        {
+            FilePath = Path.GetFullPath(filePath);
+            var directory = Path.GetDirectoryName(filePath);
+            
+            foreach (var path in Paths)
+                path.SetRegex(directory!);
+        }
+
         public static TemplateConfig? ReadTemplateConfig(string filePath)
         {
             if (!File.Exists(filePath))
@@ -24,9 +34,15 @@ namespace FileForge
             if (config is null)
                 return null;
 
-            config.FilePath = Path.GetFullPath(filePath);
+            config.SetFilePath(filePath);
 
             return config;
+        }
+
+        public static TemplateConfig? ReadTemplateConfigByDirectory(string directory)
+        {
+            var filePath = Path.GetFullPath(Path.Combine(directory, TemplateConfig.FileName));
+            return ReadTemplateConfig(filePath);
         }
 
         public class ParameterConfig
@@ -49,32 +65,32 @@ namespace FileForge
             public string? FolderExists { get; set; }
             public string? Condition { get; set; }
 
-            public Regex GetRegex(string templatePath)
+            public Regex Regex { get; set; } = null!;
+
+            public void SetRegex(string directory)
             {
                 if (string.IsNullOrEmpty(Pattern))
-                    throw new Exception(); //to do
+                    throw new InvalidFieldException("path pattern", Pattern);
 
                 if (Pattern.Any(c => illegalCharacters.Contains(c)))
-                    throw new Exception();//to do
+                    throw new InvalidFieldException("path pattern", Pattern);
 
                 // change to template directory
                 var compiledPattern = new StringBuilder("^")
-                    .Append(templatePath)
+                    .Append(directory)
                     .Append(Path.DirectorySeparatorChar)
                     .Append(Pattern)
-                    .Replace(@"**/", @"++")
-                    .Replace(@"**\", @"++")
-                    .Replace(@".", @"[.]")
                     .Replace(@"\", @"/")
                     .Replace(@"/", @"([\\]|[\/])")
-                    .Replace(@"*", @"[^\\\/]*")
-                    .Replace(@"++", @".*")
+                    .Replace(@".", @"[.]")
                     .Replace(@"?", @".{1}")
                     .Replace(@"$", @"[$]")
+                    .Replace(@"**", @"(.+[\/])?")
+                    .Replace(@"*", @"[^\\\/]*")
                     .Append('$')
                     .ToString();
 
-                return new Regex(compiledPattern);
+                Regex = new Regex(compiledPattern);
             }
         }
     }

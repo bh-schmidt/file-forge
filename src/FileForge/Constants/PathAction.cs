@@ -27,6 +27,7 @@ namespace FileForge.Constants
         public string Value { get; set; }
 
         public static implicit operator PathAction(string value) => new PathAction(value);
+        public static implicit operator string(PathAction path) => path.Value;
         public static bool operator ==(PathAction action1, PathAction action2) => action1.Value == action2.Value;
         public static bool operator !=(PathAction action1, PathAction action2) => action1.Value != action2.Value;
     }

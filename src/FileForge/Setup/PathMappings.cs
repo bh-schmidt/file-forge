@@ -1,7 +1,6 @@
 ﻿using FileForge.Constants;
-using FileForge.Exceptions;
+using FileForge.Helpers;
 using FileForge.Maps;
-using System.Collections.Immutable;
 
 namespace FileForge.Setup
 {
@@ -10,8 +9,8 @@ namespace FileForge.Setup
         private readonly string templateDirectory;
         private readonly TemplateConfig templateConfig;
 
-        private readonly Dictionary<string, FolderMap> tempFolders = new();
-        private readonly Dictionary<string, FileMap> tempFiles = new();
+        private readonly Dictionary<string, FolderMap> mappedFolders = new();
+        private readonly Dictionary<string, FileMap> mappedFiles = new();
 
         public PathMappings(string templateDirectory, TemplateConfig templateConfig)
         {
@@ -34,165 +33,57 @@ namespace FileForge.Setup
             MapPaths(RootFolder, templateDirectory);
         }
 
-        private void MapPaths(FolderMap folderMap, string currentDirectory)
+        private void MapPaths(FolderMap rootFolder, string currentDirectory)
         {
-            folderMap.TemplateConfig ??= GetTemplateConfig(currentDirectory);
-            if (folderMap.TemplateConfig is not null)
-            {
-                MapTemplateConfig(folderMap, currentDirectory);
-                MapFolder(currentDirectory, templateConfig); //???
-            }
+            if(!PathHelper.IsSubPath(templateDirectory, currentDirectory))
+                return; // to do: throw invalid path
+
+            rootFolder.TemplateConfig ??= TemplateConfig.ReadTemplateConfigByDirectory(currentDirectory);
 
             var filePaths = Directory
                 .EnumerateFiles(currentDirectory);
 
             foreach (var filePath in filePaths)
             {
-                var file = tempFiles.GetValueOrDefault(filePath);
-                if (file is null)
-                {
-                    AddDefaultFile(folderMap, filePath);
-                    continue;
-                }
+                var pathConfig = rootFolder.GetPathConfig(filePath);
 
-                file.Parent = folderMap;
-                folderMap.Files.Add(filePath, file);
+                var fileConfig = new FileMap
+                {
+                    Path = filePath,
+                    Action = pathConfig?.Action ?? PathAction.Default,
+                    Condition = pathConfig?.Condition,
+                    Parent = rootFolder
+                };
+
+                if (fileConfig.Action != PathAction.Ignore)
+                    fileConfig.FileExists = pathConfig?.FileExists ?? FileExistsAction.Default;
+
+                rootFolder.Files.Add(filePath, fileConfig);
             }
 
             var folderPaths = Directory
                 .EnumerateDirectories(currentDirectory)
-                .Where(dir => !folderMap.Folders.ContainsKey(dir) || folderMap.Folders[dir].Action != PathAction.Ignore);
+                .Where(dir => !rootFolder.Folders.ContainsKey(dir) || rootFolder.Folders[dir].Action != PathAction.Ignore);
 
             foreach (var folderPath in folderPaths)
             {
-                var folder = tempFolders.GetValueOrDefault(folderPath);
-                if(folder is null)
+                var pathConfig = rootFolder.GetPathConfig(folderPath);
+
+                var folderMap = new FolderMap
                 {
-                    AddDefaultFolder(folderMap, folderPath);
-                    continue;
-                }
+                    Path = folderPath,
+                    Action = pathConfig?.Action ?? PathAction.Default,
+                    Condition = pathConfig?.Condition,
+                    Parent = rootFolder
+                };
 
-                folder.Parent = folderMap;
-                folderMap.Folders.Add(folderPath, folder);
+                if (folderMap.Action != PathAction.Ignore)
+                    folderMap.FolderExists = pathConfig?.FolderExists ?? FolderExistsAction.Default;
+
+                rootFolder.Folders.Add(folderPath, folderMap);
+
+                MapPaths(folderMap, folderPath);
             }
-        }
-
-        private void MapFolder(string currentDirectory, TemplateConfig templateConfig)
-        {
-            foreach (var pathConfig in templateConfig.Paths)
-            {
-                if (string.IsNullOrWhiteSpace(pathConfig.Pattern))
-                    throw new InvalidFieldException(nameof(pathConfig.Pattern), pathConfig.Pattern);
-
-                var files = Directory
-                    .EnumerateFiles(currentDirectory, "*", SearchOption.AllDirectories)
-                    .Where(file => pathConfig.GetRegex(currentDirectory).IsMatch(file));
-
-                foreach (var file in files)
-                    AddTempFile(pathConfig, file);
-
-                var folders = Directory
-                    .EnumerateDirectories(currentDirectory, "*", SearchOption.AllDirectories)
-                    .Where(folder => pathConfig.GetRegex(currentDirectory).IsMatch(folder));
-
-                foreach (var folder in folders)
-                    AddTempFolder(pathConfig, folder);
-            }
-        }
-
-        private void AddTempFile(TemplateConfig.PathConfig pathConfig, string directory)
-        {
-            var path = Path.GetFullPath(directory);
-
-            var config = new FileMap
-            {
-                Path = path,
-                Action = pathConfig.Action ?? PathAction.Default,
-                Condition = pathConfig.Condition,
-            };
-
-            if (config.Action != PathAction.Ignore)
-                config.FileExists = pathConfig.FileExists ?? FileExistsAction.Default;
-
-            if (!tempFiles.TryAdd(path, config))
-                throw new DuplicatePathException(directory);
-        }
-
-        private void AddTempFolder(TemplateConfig.PathConfig pathConfig, string directory)
-        {
-            var path = Path.GetFullPath(directory);
-
-            var config = new FolderMap
-            {
-                Path = path,
-                Action = pathConfig.Action ?? PathAction.Default,
-                Condition = pathConfig.Condition,
-            };
-
-            if (config.Action != PathAction.Ignore)
-                config.FolderExists = pathConfig.FolderExists ?? FolderExistsAction.Default;
-
-            if (!tempFolders.TryAdd(path, config))
-                throw new DuplicatePathException(directory);
-        }
-
-        private void AddDefaultFolder(FolderMap previousFolder, string directory)
-        {
-            string path = Path.GetFullPath(directory);
-            if (previousFolder.Folders.ContainsKey(path))
-                return;
-
-            var config = new FolderMap
-            {
-                Path = path,
-                Action = PathAction.Default,
-                FolderExists = FolderExistsAction.Default,
-                Parent = previousFolder
-            };
-
-            previousFolder.Folders.Add(path, config);
-        }
-
-        private void AddDefaultFile(FolderMap folder, string directory)
-        {
-            string path = Path.GetFullPath(directory);
-            if (folder.Files.ContainsKey(path))
-                return;
-
-            var config = new FileMap
-            {
-                Path = path,
-                Action = PathAction.Default,
-                FileExists = FileExistsAction.Default,
-                Parent = folder
-            };
-
-            folder.Files.Add(path, config);
-        }
-
-        private void MapTemplateConfig(FolderMap folder, string directory)
-        {
-            string path = Path.GetFullPath(Path.Combine(directory, TemplateConfig.FileName));
-            if (folder.Files.ContainsKey(path))
-                return;
-
-            var config = new FileMap
-            {
-                Path = path,
-                Action = PathAction.Ignore,
-                Parent = folder
-            };
-
-            folder.Files.Add(path, config);
-        }
-
-        private TemplateConfig? GetTemplateConfig(string directory)
-        {
-            var filePath = Path.GetFullPath(Path.Combine(directory, TemplateConfig.FileName));
-            if (tempFiles.ContainsKey(filePath))
-                return null;
-
-            return TemplateConfig.ReadTemplateConfig(filePath);
         }
     }
 }

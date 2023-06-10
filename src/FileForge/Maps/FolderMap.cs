@@ -26,6 +26,15 @@ namespace FileForge.Maps
             return Parent.ParameterExists(name);
         }
 
+        public TemplateConfig.PathConfig? GetPathConfig(string path)
+        {
+            var config = TemplateConfig?
+                .Paths?
+                .FirstOrDefault(e => e.Regex.IsMatch(path));
+
+            return config ?? Parent?.GetPathConfig(path) ?? DefaultPathConfigs.GetDefault(path);
+        }
+
         public object? GetParameter(string name)
         {
             return Parameters.GetValueOrDefault(name)?.Value ?? Parent?.GetParameter(name);

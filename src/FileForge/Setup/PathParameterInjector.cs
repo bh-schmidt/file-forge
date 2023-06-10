@@ -1,4 +1,5 @@
-﻿using FileForge.Maps;
+﻿using FileForge.Exceptions;
+using FileForge.Maps;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -26,7 +27,7 @@ namespace FileForge.Setup
                     continue;
 
                 if (stringParameter.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
-                    throw new Exception(); // to do
+                    throw new InvalidParameterException(parameterName, stringParameter);
 
                 builder.Replace(pattern, stringParameter);
             }
