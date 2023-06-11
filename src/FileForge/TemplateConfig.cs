@@ -32,7 +32,7 @@ namespace FileForge
             var serializer = new JsonSerializer();
             var config = (TemplateConfig?)serializer.Deserialize(file, typeof(TemplateConfig));
             if (config is null)
-                return null;
+                throw new InvalidTemplateFileException();
 
             config.SetFilePath(filePath);
 
@@ -81,12 +81,13 @@ namespace FileForge
                     .Append(Path.DirectorySeparatorChar)
                     .Append(Pattern)
                     .Replace(@"\", @"/")
-                    .Replace(@"/", @"([\\]|[\/])")
+                    .Replace(@"**/", @"$anything$")
+                    .Replace(@"/", @"[\\\/]")
                     .Replace(@".", @"[.]")
                     .Replace(@"?", @".{1}")
-                    .Replace(@"$", @"[$]")
-                    .Replace(@"**", @"(.+[\/])?")
+                    .Replace(@"$anything$", @"(.+[\\\/])?")
                     .Replace(@"*", @"[^\\\/]*")
+                    .Replace(@"$", @"[$]")
                     .Append('$')
                     .ToString();
 

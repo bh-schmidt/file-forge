@@ -1,6 +1,6 @@
 ﻿namespace FileForge.Helpers
 {
-    public static class Enumeration
+    public static class EnumerationHelper
     {
         internal static IEnumerable<T> GetAll<T>() =>
             typeof(T)

@@ -8,9 +8,10 @@ namespace FileForge.Constants
         public static readonly PathAction Inject = "inject";
         public static readonly PathAction Copy = "copy";
         public static readonly PathAction Ignore = "ignore";
+        public static readonly PathAction Process = "process";
         public static readonly PathAction Default = Inject;
 
-        private static readonly HashSet<string> allActions = Enumeration
+        private static readonly HashSet<string> allActions = EnumerationHelper
             .GetAll<PathAction>()
             .Select(e => e.Value)
             .Distinct()
@@ -18,6 +19,9 @@ namespace FileForge.Constants
 
         public PathAction(string value)
         {
+            if(value is null)
+                throw new InvalidFieldException("path action", value);
+
             if (allActions is not null && !allActions.Contains(value))
                 throw new InvalidFieldException("path action", value);
 

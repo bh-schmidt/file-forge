@@ -25,7 +25,7 @@ namespace FileForge.Setup
 
         public void Create()
         {
-            if (file is null || file.Action == PathAction.Ignore)
+            if (file is null || file.Action == PathAction.Ignore || file.Action == PathAction.Process)
                 return;
 
             string content = GetContent();

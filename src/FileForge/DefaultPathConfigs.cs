@@ -9,7 +9,7 @@ namespace FileForge
 
         static DefaultPathConfigs()
         {
-            var ignoredFiles = new[]
+            var processFiles = new[]
             {
                 @"_template-config.json"
             };
@@ -22,11 +22,11 @@ namespace FileForge
                 @"obj"
             };
 
-            foreach (var ignoredFile in ignoredFiles)
-                AddIgnored(GetFileRegex(ignoredFile));
+            foreach (var processFile in processFiles)
+                AddIgnored(GetFileRegex(processFile), PathAction.Process);
 
             foreach (var ignoredFolder in ignoresFolders)
-                AddIgnored(GetFolderRegex(ignoredFolder));
+                AddIgnored(GetFolderRegex(ignoredFolder), PathAction.Ignore);
         }
 
         public static TemplateConfig.PathConfig? GetDefault(string path)
@@ -46,12 +46,12 @@ namespace FileForge
             return $@"^(.*[\/\\])?{regex}([\/\\].*)?$";
         }
 
-        private static void AddIgnored(string pattern)
+        private static void AddIgnored(string pattern, PathAction action)
         {
             var config = new TemplateConfig.PathConfig()
             {
                 Pattern = pattern,
-                Action = PathAction.Ignore,
+                Action = action,
                 Condition = null,
                 Regex = new Regex(pattern)
             };

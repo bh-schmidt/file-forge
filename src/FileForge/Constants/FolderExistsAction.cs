@@ -9,7 +9,7 @@ namespace FileForge.Constants
         public static readonly FolderExistsAction Clear = "clear";
         public static readonly FolderExistsAction Default = None;
 
-        private static readonly HashSet<string> allActions = Enumeration
+        private static readonly HashSet<string> allActions = EnumerationHelper
             .GetAll<FolderExistsAction>()
             .Select(e => e.Value)
             .Distinct()

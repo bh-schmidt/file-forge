@@ -13,7 +13,7 @@ namespace FileForge.Constants
         public static readonly ParameterType TextOption = "text-option";
         public static readonly ParameterType Default = Text;
 
-        private static readonly HashSet<string> allTypes = Enumeration
+        private static readonly HashSet<string> allTypes = EnumerationHelper
             .GetAll<ParameterType>()
             .Select(e => e.Value)
             .Distinct()

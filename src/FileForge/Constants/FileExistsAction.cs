@@ -10,7 +10,7 @@ namespace FileForge.Constants
         public static readonly FileExistsAction Ignore = "ignore";
         public static readonly FileExistsAction Default = Ask;
 
-        private static readonly HashSet<string> allActions =  Enumeration
+        private static readonly HashSet<string> allActions =  EnumerationHelper
             .GetAll<FileExistsAction>()
             .Select(e => e.Value)
             .Distinct()

@@ -7,22 +7,17 @@ namespace FileForge.Setup
     public class PathMappings
     {
         private readonly string templateDirectory;
-        private readonly TemplateConfig templateConfig;
-
-        private readonly Dictionary<string, FolderMap> mappedFolders = new();
-        private readonly Dictionary<string, FileMap> mappedFiles = new();
 
         public PathMappings(string templateDirectory, TemplateConfig templateConfig)
         {
             this.templateDirectory = Path.GetFullPath(templateDirectory);
-            this.templateConfig = templateConfig;
 
             RootFolder = new FolderMap
             {
                 Path = templateDirectory,
                 Action = PathAction.Default,
                 FolderExists = FolderExistsAction.Default,
-                TemplateConfig = templateConfig,
+                //TemplateConfig = templateConfig,
             };
         }
 
@@ -35,17 +30,19 @@ namespace FileForge.Setup
 
         private void MapPaths(FolderMap rootFolder, string currentDirectory)
         {
-            if(!PathHelper.IsSubPath(templateDirectory, currentDirectory))
+            if (!PathHelper.IsSubPath(templateDirectory, currentDirectory))
                 return; // to do: throw invalid path
 
-            rootFolder.TemplateConfig ??= TemplateConfig.ReadTemplateConfigByDirectory(currentDirectory);
+            SetFolderConfig(rootFolder, currentDirectory);
 
-            var filePaths = Directory
-                .EnumerateFiles(currentDirectory);
+            var filePaths = Directory.EnumerateFiles(currentDirectory);
 
             foreach (var filePath in filePaths)
             {
                 var pathConfig = rootFolder.GetPathConfig(filePath);
+
+                if (rootFolder.Files.ContainsKey(filePath))
+                    continue;
 
                 var fileConfig = new FileMap
                 {
@@ -84,6 +81,27 @@ namespace FileForge.Setup
 
                 MapPaths(folderMap, folderPath);
             }
+        }
+
+        private static void SetFolderConfig(FolderMap rootFolder, string currentDirectory)
+        {
+            var templateFilePath = Path.GetFullPath(Path.Combine(currentDirectory, TemplateConfig.FileName));
+            var templatePathConfig = rootFolder.GetPathConfig(templateFilePath);
+
+            if (templatePathConfig is not null && templatePathConfig.Action! == PathAction.Process)
+                rootFolder.TemplateConfig ??= TemplateConfig.ReadTemplateConfigByDirectory(currentDirectory);
+
+            FileMap fileMap = new FileMap
+            {
+                Path = templateFilePath,
+                Action = templatePathConfig?.Action ?? PathAction.Default,
+                Condition = templatePathConfig?.Condition,
+                Parent = rootFolder
+            };
+
+            rootFolder.Files.Add(
+                templateFilePath,
+                fileMap);
         }
     }
 }
