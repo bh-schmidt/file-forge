@@ -1,0 +1,64 @@
+{
+  "name": "hyper-forge",
+  "version": "0.1.0",
+  "description": "Package used to build your forge in the hyper forge ecosystem.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "watch": "nodemon --watch src --ext * --exec npm run build",
+    "publish": "rm -rf dist && npm run build && npm pack"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "keywords": ["file", "hyper", "forge", "project", "tooling", "template", "scaffolding"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bh-schmidt/hyper-forge"
+  },
+  "bugs": {
+    "url": "https://github.com/bh-schmidt/hyper-forge/issues"
+  },
+  "homepage": "https://github.com/bh-schmidt/hyper-forge#readme",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@types/execa": "^0.9.0",
+    "better-sqlite3": "^11.9.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "execa": "^9.5.2",
+    "fs-extra": "^11.3.0",
+    "glob": "^11.0.1",
+    "istextorbinary": "^9.5.0",
+    "liquidjs": "^10.21.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.30.1",
+    "prompts": "^2.4.2",
+    "proper-lockfile": "^4.1.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/fs-extra": "^11.0.4",
+    "@types/istextorbinary": "^2.3.4",
+    "@types/lodash": "^4.17.16",
+    "@types/moment": "^2.11.29",
+    "@types/node": "^22.14.0",
+    "@types/prompts": "^2.4.9",
+    "@types/proper-lockfile": "^4.1.4",
+    "@types/sqlite3": "^3.1.11",
+    "nodemon": "^3.1.9",
+    "tsc-alias": "^1.8.14",
+    "typescript": "^5.8.2"
+  }
+}
