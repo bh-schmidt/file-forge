@@ -1,8 +1,8 @@
 import { Command, Option } from "commander";
-import { GlobOptions, ReadStream } from "fs-extra";
+import { ReadStream } from "fs-extra";
 import prompts from "prompts";
 import { Forge } from "./forge/Forge";
-import { Options as ExecaOptions } from "execa";
+import { GlobOptions as BaseGlobOptions } from 'glob'
 
 export type ForgeStages = 'init' | 'prompt' | 'write' | 'conflicts' | 'commit' | 'rollback' | 'end'
 
@@ -31,6 +31,10 @@ export interface WriteOptions {
 export type TempPathType = 'file' | 'directory';
 
 export interface PromptObject<T extends string = string> extends prompts.PromptObject<T> { }
+
+export interface GlobOptions extends BaseGlobOptions {
+    nofiles?: boolean
+}
 
 export interface IForgeFs {
     writeFile(path: string, data: string | NodeJS.ArrayBufferView, options?: WriteOptions): Promise<void>

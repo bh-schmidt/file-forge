@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc && tsc-alias",
     "watch": "nodemon --watch src --ext * --exec npm run build",
-    "publish": "rm -rf dist && npm run build && npm pack"
+    "pack": "rm -rf dist && npm run build && npm pack"
   },
   "files": [
     "dist/**/*.js",
@@ -19,7 +19,15 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "keywords": ["file", "hyper", "forge", "project", "tooling", "template", "scaffolding"],
+  "keywords": [
+    "file",
+    "hyper",
+    "forge",
+    "project",
+    "tooling",
+    "template",
+    "scaffolding"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bh-schmidt/hyper-forge"
@@ -32,6 +40,9 @@
   "type": "module",
   "dependencies": {
     "@types/execa": "^0.9.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.14.1",
+    "@types/prompts": "^2.4.9",
     "better-sqlite3": "^11.9.1",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
@@ -49,12 +60,9 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/fs-extra": "^11.0.4",
     "@types/istextorbinary": "^2.3.4",
     "@types/lodash": "^4.17.16",
     "@types/moment": "^2.11.29",
-    "@types/node": "^22.14.0",
-    "@types/prompts": "^2.4.9",
     "@types/proper-lockfile": "^4.1.4",
     "@types/sqlite3": "^3.1.11",
     "nodemon": "^3.1.9",

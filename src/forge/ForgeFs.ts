@@ -1,7 +1,7 @@
 import { dirname, join, relative } from "path";
-import { IForgeFs, WriteOptions } from "../types";
+import { GlobOptions, IForgeFs, WriteOptions } from "../types";
 import { Forge } from "./Forge";
-import fs, { GlobOptions } from 'fs-extra'
+import fs from 'fs-extra'
 import { GlobHelper } from "../common/GlobHelper";
 import { PathHelper } from "../common/PathHelper";
 

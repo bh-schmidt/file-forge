@@ -1,8 +1,8 @@
-import { PromptObject } from "../types"
-import lodash, { result } from 'lodash'
 import chalk from "chalk"
+import lodash from 'lodash'
 import moment from "moment"
 import prompts from "prompts"
+import { PromptObject } from "../types"
 
 const defaultOptions: PromptsHelper.PromptOptions = {
     clearBeforeConfirmations: true,

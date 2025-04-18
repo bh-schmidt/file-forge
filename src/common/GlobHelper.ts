@@ -1,15 +1,18 @@
-import { globStream as asyncGlob, GlobOptions as BaseGlobOptions, Glob, globStream } from "glob";
-import { PathHelper } from "./PathHelper";
-
-export interface GlobOptions extends BaseGlobOptions {
-    nofiles?: boolean
-}
+import { globStream, Path } from "glob";
+import { GlobOptions } from "../types";
 
 export namespace GlobHelper {
-    export async function* globAll(
+    export async function* globAll<TOptions extends GlobOptions = GlobOptions>(
         pattern: string | string[],
-        options: GlobOptions = {}
+        options: TOptions = {} as any
     ) {
+        pattern = Array.isArray(pattern) ? pattern : [pattern]
+        if (options?.nofiles) {
+            pattern = pattern.map(p => p.endsWith('/') ?
+                p :
+                p + '/')
+        }
+
         options = {
             ...options,
             mark: true,
@@ -17,15 +20,10 @@ export namespace GlobHelper {
             dot: true
         }
 
-        const stream = asyncGlob(pattern, options)
+        const stream = globStream(pattern, options)
 
         for await (const item of stream) {
-            const path = item as string
-            if (options.nofiles && !PathHelper.isDirectory(path)) {
-                continue
-            }
-
-            yield path
+            yield item as TOptions extends { withFileTypes: true } ? Path : string
         }
     }
 

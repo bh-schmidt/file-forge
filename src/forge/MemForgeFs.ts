@@ -1,8 +1,8 @@
 import fs from 'fs-extra';
 import { join, sep } from "path";
-import { GlobHelper, GlobOptions } from "../common/GlobHelper";
+import { GlobHelper } from "../common/GlobHelper";
 import { PathHelper } from "../common/PathHelper";
-import { IForgeFs, TempPathType, WriteOptions } from "../types";
+import { GlobOptions, IForgeFs, TempPathType, WriteOptions } from "../types";
 import { Forge } from "./Forge";
 import { TempFs } from "./TempFs";
 

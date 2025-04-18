@@ -1,10 +1,9 @@
-import { PromptObject } from "../types";
-import lodash from "lodash";
-import { Forge } from "./Forge";
-import prompts, { Falsy, PrevCaller, PromptType } from "prompts";
 import chalk from "chalk";
 import moment from "moment";
+import prompts from "prompts";
 import { PromptsHelper } from "../common/PromptsHelper";
+import { PromptObject } from "../types";
+import { Forge } from "./Forge";
 
 export interface ForgePromptsOptions {
     readFromVariables?: boolean
