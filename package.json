@@ -1,6 +1,6 @@
 {
   "name": "hyper-forge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Package used to build your forge in the hyper forge ecosystem.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
